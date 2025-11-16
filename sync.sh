@@ -11,6 +11,7 @@ FILES=(
   "leela_cnn.py"
   "mcts.py"
   "model_wrapper.py"
+  "util.py"
 )
 
 # Make sure destination exists
