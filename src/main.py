@@ -42,19 +42,27 @@ def random_move(ctx: GameContext) -> Move:
 
 
 def get_move_from_mcts(ctx: GameContext) -> Move:
+    if ctx.timeLeft < 2000:
+        return random_move(ctx)
+
     print("Making MCTS move!")
     global moves_played
     if moves_played < 10:
         ponder_time = int(3e8)
+        temperature = 0.2
     elif moves_played < 30:
         ponder_time = int(5e8)
+        temperature = 0.3
     else:
         ponder_time = int(1e9)
+        temperature = 0.6
 
     ponder_time = min(ponder_time, int(ctx.timeLeft // 10 * 1e6))
     print("Ponder time (ns):", ponder_time)
 
-    move = mcts.ponder_time(board=ctx.board, ponder_time_ns=ponder_time)
+    move = mcts.ponder_time(
+        board=ctx.board, ponder_time_ns=ponder_time, temperature=temperature
+    )
     print("MCTS selected move:", move)
 
     moves_played += 1
