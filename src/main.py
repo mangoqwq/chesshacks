@@ -20,7 +20,7 @@ from .utils import chess_manager, GameContext
 import torch
 
 # init logic
-model_path = "./src/utils/checkpoint_2400_20251116_051414.pth"
+model_path = "./src/utils/checkpoint_4000_20251116_060127.pth"
 model = LeelaCNN(10, 128)
 model.load_state_dict(
     torch.load(model_path, weights_only=True, map_location=torch.device("cpu"))
@@ -31,6 +31,7 @@ wrapped_model = ModelWrapper(model)
 
 # create mcts with the model
 mcts = MCTS(wrapped_model, c_puct=3.0)
+moves_played = 0
 
 
 def random_move(ctx: GameContext) -> Move:
@@ -42,13 +43,21 @@ def random_move(ctx: GameContext) -> Move:
 
 def get_move_from_mcts(ctx: GameContext) -> Move:
     print("Making MCTS move!")
+    global moves_played
+    if moves_played < 10:
+        ponder_time = int(3e8)
+    elif moves_played < 30:
+        ponder_time = int(5e8)
+    else:
+        ponder_time = int(1e9)
 
-    ponder_time = min(int(1e9), int(ctx.timeLeft // 10 * 1e6))
+    ponder_time = min(ponder_time, int(ctx.timeLeft // 10 * 1e6))
     print("Ponder time (ns):", ponder_time)
 
     move = mcts.ponder_time(board=ctx.board, ponder_time_ns=ponder_time)
     print("MCTS selected move:", move)
 
+    moves_played += 1
     return move
 
 
@@ -66,3 +75,5 @@ def get_move(ctx: GameContext) -> Move:
 @chess_manager.reset
 def reset_func(ctx: GameContext):
     print("Resetting game state")
+    global moves_played
+    moves_played = 0
