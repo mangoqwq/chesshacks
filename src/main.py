@@ -20,13 +20,13 @@ from .utils import chess_manager, GameContext
 import torch
 
 # init logic
-model_early_path = "./src/utils/checkpoint_600_20251116_090407.pth"
+model_early_path = "./src/utils/early_checkpoint_6000_20251116_120458.pth"
 model_early = LeelaCNN(10, 128)
 model_early.load_state_dict(
     torch.load(model_early_path, weights_only=True, map_location=torch.device("cpu"))
 )
 
-model_late_path = "./src/utils/checkpoint_600_20251116_090407.pth"
+model_late_path = "./src/utils/late_checkpoint_4200_20251116_115008.pth"
 model_late = LeelaCNN(10, 128)
 model_late.load_state_dict(
     torch.load(model_late_path, weights_only=True, map_location=torch.device("cpu"))
@@ -72,6 +72,7 @@ def get_move_from_mcts(ctx: GameContext) -> Move:
     move = active_mcts.ponder_time(
         board=ctx.board, ponder_time_ns=ponder_time, temperature=temperature
     )
+    ctx.logProbabilities(active_mcts.probabilities(ctx.board, temperature=temperature))
     print("MCTS selected move:", move)
 
     return move

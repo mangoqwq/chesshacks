@@ -147,6 +147,17 @@ class MCTS:
         idx = np.random.choice(len(node.moves), p=weights / weights.sum())
         return node.moves[idx]
 
+    def probabilities(self, board: Board, temperature: float) -> Dict[Move, float]:
+        node = self.get_node(board)
+        total_visits = node.num_visits
+        weights = np.array([np.pow(edge.num_visits / total_visits, 1 / temperature) for edge in node.edges])
+        weights_sum = weights.sum()
+        move_probs = {
+            move: float(weights[i] / weights_sum) if weights_sum > 0 else float(-np.inf)
+            for move, i in zip(node.moves, range(len(node.edges)))
+        }
+        return move_probs
+
     def ponder(self, board: Board, num_simulations: int, temperature=1.0) -> Move:
         if board.is_game_over():
             return Move.null()
