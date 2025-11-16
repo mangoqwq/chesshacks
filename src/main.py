@@ -20,7 +20,7 @@ from .utils import chess_manager, GameContext
 import torch
 
 # init logic
-model_path = "./src/utils/checkpoint_10000.pth"
+model_path = "./src/utils/checkpoint.pth"
 model = LeelaCNN(10, 128)
 model.load_state_dict(torch.load(model_path, weights_only=True))
 
