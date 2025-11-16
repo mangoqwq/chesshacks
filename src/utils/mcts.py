@@ -175,7 +175,10 @@ class MCTS:
         simulation_time_ns: int = int(1e7),
     ) -> Move:
         stop_time = time.time_ns() + ponder_time_ns - simulation_time_ns
+        explored = 0
         while time.time_ns() <= stop_time:
             self.search(board)
+            explored += 1
 
+        print("Explored simulations:", explored)
         return self.get_move(board, temperature=temperature)
