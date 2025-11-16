@@ -20,18 +20,27 @@ from .utils import chess_manager, GameContext
 import torch
 
 # init logic
-model_path = "./src/utils/checkpoint_4000_20251116_060127.pth"
-model = LeelaCNN(10, 128)
-model.load_state_dict(
-    torch.load(model_path, weights_only=True, map_location=torch.device("cpu"))
+model_early_path = "./src/utils/checkpoint_600_20251116_090407.pth"
+model_early = LeelaCNN(10, 128)
+model_early.load_state_dict(
+    torch.load(model_early_path, weights_only=True, map_location=torch.device("cpu"))
+)
+
+model_late_path = "./src/utils/checkpoint_600_20251116_090407.pth"
+model_late = LeelaCNN(10, 128)
+model_late.load_state_dict(
+    torch.load(model_late_path, weights_only=True, map_location=torch.device("cpu"))
 )
 
 # wrap the model
-wrapped_model = ModelWrapper(model)
+wrapped_model_early = ModelWrapper(model_early)
+wrapped_model_late = ModelWrapper(model_late)
 
 # create mcts with the model
-mcts = MCTS(wrapped_model, c_puct=3.0)
-moves_played = 0
+mcts_early = MCTS(wrapped_model_early, c_puct=3.0)
+mcts_late = MCTS(wrapped_model_late, c_puct=1.0)
+
+active_mcts = mcts_early
 
 
 def random_move(ctx: GameContext) -> Move:
@@ -46,26 +55,25 @@ def get_move_from_mcts(ctx: GameContext) -> Move:
         return random_move(ctx)
 
     print("Making MCTS move!")
-    global moves_played
-    if moves_played < 10:
-        ponder_time = int(3e8)
-        temperature = 0.2
-    elif moves_played < 30:
+    global active_mcts
+    board_pieces = len(ctx.board.piece_map())
+    if board_pieces >= 20:
+        active_mcts = mcts_early
         ponder_time = int(5e8)
-        temperature = 0.3
+        temperature = 0.2
     else:
+        active_mcts = mcts_late
         ponder_time = int(1e9)
         temperature = 0.6
 
     ponder_time = min(ponder_time, int(ctx.timeLeft // 10 * 1e6))
     print("Ponder time (ns):", ponder_time)
 
-    move = mcts.ponder_time(
+    move = active_mcts.ponder_time(
         board=ctx.board, ponder_time_ns=ponder_time, temperature=temperature
     )
     print("MCTS selected move:", move)
 
-    moves_played += 1
     return move
 
 
