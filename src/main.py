@@ -20,9 +20,9 @@ from .utils import chess_manager, GameContext
 import torch
 
 # init logic
-model_path = "./src/utils/checkpoint.pth"
+model_path = "./src/utils/checkpoint_15000_20251115_220732.pth"
 model = LeelaCNN(10, 128)
-model.load_state_dict(torch.load(model_path, weights_only=True))
+model.load_state_dict(torch.load(model_path, weights_only=True, map_location=torch.device('cpu')))
 
 # wrap the model
 wrapped_model = ModelWrapper(model)
