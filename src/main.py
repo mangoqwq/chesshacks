@@ -40,7 +40,7 @@ def random_move(ctx: GameContext) -> Move:
 def get_move_from_mcts(ctx: GameContext) -> Move:
     print("Making MCTS move!")
 
-    ponder_time = ctx.timeLeft // 1000 * int(1e6)
+    ponder_time = min(int(1e9), ctx.timeLeft // 10 * 1e6)
     print("Ponder time (ns):", ponder_time)
 
     move = mcts.ponder_time(board=ctx.board, time_ns=time.time(), simulation_time_ns=ponder_time)
